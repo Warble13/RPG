@@ -82,7 +82,7 @@ class Wizard(Character):
         speed = 30
         xp = 0
         mana = 200
-        max_mana = mana
+        self.max_mana = mana
         Character.__init__(self, hp, ac, speed, xp, mana)
     
     def spells(self):
