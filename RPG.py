@@ -13,6 +13,8 @@ class Character():
         self.level = 1
         self.is_alive = True
         self.is_conscious = True
+        self.mana = mana
+        self.max_mana = mana
     
     def take_damage(self, damage_amount):
         if self.is_alive:
@@ -81,11 +83,11 @@ class Wizard(Character):
         ac = randint(9, 13)
         speed = 30
         xp = 0
-        mana = 200
-        self.max_mana = mana
-        Character.__init__(self, hp, ac, speed, xp, mana)
+        mana = 100
+        super().__init__(hp, ac, speed, xp, mana)
     
     def spells(self):
+        damage_given = None
         spell_choice = None
         spell_list = {1:'Mana Bolt', 2:'Cure wounds', 3:'Mage Armor'}
         spell_info = {1: 'You shoot a bolt of mana that deals damage. ', 2: 'You heal your wounds. ', 3:'You make armor out of mana, increasing your defense. '}
@@ -94,26 +96,30 @@ class Wizard(Character):
             print(str(num) + '. ' + spell_list[num])
         init_choice = str(input("Which spell will you use? "))
         init_choice = init_choice.lower()
-        if init_choice == 'mana bolt' and self.mana >= 20:
+        if init_choice == 'mana bolt' or init_choice == '1' and self.mana >= 20:
             spell_choice = 1
+            damage_given = randint(8, 12)
+            if damage_given == 12:
+                damage_given = 50
             self.mana = self.mana - 20
-        elif init_choice == 'cure wounds'and self.mana >= 20:
+        elif init_choice == 'cure wounds' or init_choice == '2' and self.mana >= 20:
             spell_choice = 2
             self.heal(10)
             self.mana = self.mana - 20
-        elif init_choice == 'mage armor'and self.mana >= 20:
+        elif init_choice == 'mage armor' or init_choice == '3' and self.mana >= 20:
             spell_choice = 3
             self.armor_increase(16)
-            self.mana = self.mana - 20
-        elif init_choice in ['1', '2', '3'] and self.mana >= 20:
-            spell_choice = int(init_choice)
             self.mana = self.mana - 20
         else:
             print('Choose a valid spell. ')
             self.spells()
         if spell_choice != None:
             print(spell_info.get(spell_choice))
-            print('You now have ' + str(self.mana) + ' mana left. ')
+        if self.mana == 0:
+            battle_rest = int(input('You need to rest. How long would you like to rest? '))
+            self.long_rest(battle_rest)
+        print('You now have ' + str(self.mana) + ' mana left. ')
+        return damage_given
 
     def level_up(self):
         Character.level_up(self)
@@ -121,9 +127,16 @@ class Wizard(Character):
 
     def long_rest(self, rest_length):
         Character.long_rest(self, rest_length)
-        self.mana = self.mana + (rest_length * 10)
+        self.mana = self.mana + (rest_length * 20)
         if self.mana > self.max_mana:
             self.mana = self.max_mana
+        super().long_rest(rest_length)
+    
+    def __str__(self):
+        if self.is_alive:
+            return 'Wizard - HP: ' + str(self.hp) + ' AC: ' + str(self.ac) + ' Speed: ' + str(self.speed) + ' XP: ' + str(self.xp)
+        else:
+            return "You have died, Wizard. "
 
 class Monk(Character):
     def __init__(self):
@@ -132,10 +145,10 @@ class Monk(Character):
         speed = 45
         xp = 0
         ki = 5
-        self.max_mana = ki
-        Character.__init__(self, hp, ac, speed, xp, ki)
+        super().__init__(hp, ac, speed, xp, ki)
     
     def monk_attacks(self):
+        damage_given = None
         attack_choice = None
         attack_list = {1:'Flurry of Blows', 2:'Calm Emotions', 3:'Mental Fortitude'}
         attack_info = {1: 'You attack with your fists rapidly. ', 2: 'You calm your emotions, relaxing and slightly healing yourself. ', 3:'You turn your mental resolve into defense. '}
@@ -144,26 +157,30 @@ class Monk(Character):
             print(str(num) + '. ' + attack_list[num])
         init_choice = str(input("Which attack will you use? "))
         init_choice = init_choice.lower()
-        if init_choice == 'flurry of blows' and self.mana >= 1:
+        if init_choice == 'flurry of blows' or init_choice == '1' and self.mana >= 1:
             attack_choice = 1
+            damage_given = randint(6, 15)
+            if damage_given == 15:
+                damage_given = 50
             self.mana = self.mana - 1
-        elif init_choice == 'cure wounds' and self.mana >= 1:
+        elif init_choice == 'cure wounds' or init_choice == '2' and self.mana >= 1:
             attack_choice = 2
             self.heal(5)
             self.mana = self.mana - 1
-        elif init_choice == 'mage armor' and self.mana >= 1:
+        elif init_choice == 'mental fortitude' or init_choice == '3' and self.mana >= 1:
             attack_choice = 3
             self.armor_increase(18)
-            self.mana = self.mana - 1
-        elif init_choice in ['1', '2', '3'] and self.mana >= 1:
-            attack_choice = int(init_choice)
             self.mana = self.mana - 1
         else:
             print('Choose a valid attack. ')
             self.monk_attacks()
-        if attack_choice != None:
+        if attack_choice:
             print(attack_info.get(attack_choice))
             print('You now have ' + str(self.mana) + ' ki left. ')
+        if self.mana == 0:
+            battle_rest = int(input('You need to rest. How long would you like to rest? '))
+            self.long_rest(battle_rest)
+        return damage_given
 
     def level_up(self):
         Character.level_up(self)
@@ -174,13 +191,39 @@ class Monk(Character):
         self.mana = self.mana + (rest_length)
         if self.mana > self.max_mana:
             self.mana = self.max_mana
+        super().long_rest(rest_length)
 
-        
+    def __str__(self):
+        if self.is_alive:
+            return 'Monk - HP: ' + str(self.hp) + ' AC: ' + str(self.ac) + ' Speed: ' + str(self.speed) + ' XP: ' + str(self.xp)
+        else:
+            return "You have died, Monk. "
 
 
 def main():
     wizard1 = Wizard()
-    wizard1.spells()
+    monk1 = Monk()
     print(wizard1)
+    print(monk1)
+    while wizard1.is_alive and monk1.is_alive:
+        if wizard1.is_alive and wizard1.is_conscious:
+            damage = wizard1.spells()
+            if damage:
+                monk1.take_damage(damage)
+        if monk1.is_alive and monk1.is_conscious:
+            damage = monk1.monk_attacks()
+            if damage:
+                wizard1.take_damage(damage)
+        if not wizard1.is_alive:
+            print('Monk wins! ')
+            print(monk1)
+            monk1.xp_gain(100)
+        if not monk1.is_alive:
+            print('Wizard wins! ')
+            print(wizard1)
+            wizard1.xp_gain(100)
+        print(wizard1)
+        print(monk1)
+
 
 main() 
